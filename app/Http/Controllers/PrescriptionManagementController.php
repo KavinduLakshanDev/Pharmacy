@@ -18,25 +18,41 @@ class PrescriptionManagementController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Prescription::with(['customer:id,name,code,phone,email', 'messages'])
-            ->latest();
+        $query = Prescription::with(['customer:id,name,code,phone,email', 'messages']);
+
+        if ($request->has('search') && $request->search !== null && trim($request->search) !== '') {
+            $search = $request->search;
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->whereHas('customer', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            });
+        }
 
         if ($request->status && in_array($request->status, ['pending', 'processing', 'ready'])) {
             $query->where('status', $request->status);
         }
 
-        $prescriptions = $query->paginate(20)->through(fn ($p) => array_merge(
-            $p->only(['id', 'customer_notes', 'delivery_requested', 'delivery_address', 'delivery_charge', 'status', 'staff_message', 'medicine_items', 'created_at']),
-            [
-                'image_url' => $p->image_url,
-                'customer' => $p->customer,
-                'messages' => $p->messages->map(fn ($m) => $m->only(['id', 'sender_type', 'message', 'created_at'])),
-            ]
-        ));
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $perPage = $request->get('per_page', 20);
+
+        $prescriptions = $query->orderBy($sortField, $sortDirection)
+            ->paginate($perPage)
+            ->through(fn ($p) => array_merge(
+                $p->only(['id', 'customer_notes', 'delivery_requested', 'delivery_address', 'delivery_charge', 'status', 'staff_message', 'medicine_items', 'created_at']),
+                [
+                    'image_url' => $p->image_url,
+                    'customer' => $p->customer,
+                    'messages' => $p->messages->map(fn ($m) => $m->only(['id', 'sender_type', 'message', 'created_at'])),
+                ]
+            ));
 
         return Inertia::render('prescriptions/index', [
             'prescriptions' => $prescriptions,
-            'filters' => $request->only('status'),
+            'filters' => $request->only(['search', 'status', 'sort_field', 'sort_direction', 'per_page']),
         ]);
     }
 

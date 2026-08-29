@@ -1,11 +1,10 @@
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, usePage } from '@inertiajs/react';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { FormEventHandler, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, Clock, Loader2, CheckCircle, Eye, Plus, Trash2, Search, CheckCircle2, XCircle, X, Send, Truck, Receipt } from 'lucide-react';
+import { FileText, Clock, Loader2, CheckCircle, Eye, Plus, Search, CheckCircle2, XCircle, X, Send, Truck, Receipt } from 'lucide-react';
 import { toast } from '@/components/custom-toast';
 import { PageTemplate } from '@/components/page-template';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,6 +12,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
+import { Pagination } from '@/components/ui/pagination';
+import { SearchAndFilterBar } from '@/components/ui/search-and-filter-bar';
+import { CrudTable } from '@/components/CrudTable';
 
 interface Customer {
     id: number;
@@ -81,14 +83,9 @@ interface PaginationLinks {
 interface PrescriptionsPaginated {
     data: Prescription[];
     links: PaginationLinks[];
-    current_page: number;
-    last_page: number;
+    from: number;
+    to: number;
     total: number;
-}
-
-interface PrescriptionsIndexProps {
-    prescriptions: PrescriptionsPaginated;
-    filters: { status?: string };
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline'; icon: typeof Clock; badgeClass?: string }> = {
@@ -306,7 +303,6 @@ function ChatThreadPanel({ prescription }: { prescription: Prescription }) {
         <div className="space-y-3">
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('Chat')}</p>
 
-            {/* Thread */}
             <div className="max-h-60 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-3 space-y-2">
                 {prescription.messages.length === 0 ? (
                     <p className="text-center text-xs text-gray-400 py-4">{t('No messages yet.')}</p>
@@ -332,7 +328,6 @@ function ChatThreadPanel({ prescription }: { prescription: Prescription }) {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Reply */}
             <form onSubmit={submit} className="flex items-end gap-2">
                 <div className="flex-1">
                     <Textarea
@@ -364,7 +359,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
     const initialItems: MedicineItem[] = Array.isArray(prescription.medicine_items) && prescription.medicine_items.length > 0
         ? prescription.medicine_items.map((item) => {
             const base = { ...emptyMedicineItem(), ...item };
-            // Migrate legacy single-alternative fields to the new array format
             const legacy = item as MedicineItem & { alternative_product_id?: number | null; alternative_product_name?: string | null };
             if ((!base.alternatives || base.alternatives.length === 0) && legacy.alternative_product_id) {
                 base.alternatives = [{ id: legacy.alternative_product_id, name: legacy.alternative_product_name ?? '', sale_price: null }];
@@ -406,7 +400,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
         const updated = data.medicine_items.map((item, i) =>
             i === index ? ({ ...item, ...patch } as MedicineItem) : item,
         );
-
         setData('medicine_items', updated);
     };
 
@@ -455,7 +448,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                     </button>
                 </div>
                 <div className="p-6 space-y-5">
-                    {/* Customer info */}
                     {prescription.customer && (
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
@@ -483,7 +475,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                         </div>
                     )}
 
-                    {/* Prescription image */}
                     <div>
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('Prescription Image')}</p>
                         <a href={prescription.image_url} target="_blank" rel="noopener noreferrer">
@@ -496,7 +487,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                         <p className="text-xs text-gray-400 mt-1">{t('Click image to view full size')}</p>
                     </div>
 
-                    {/* Customer notes */}
                     {prescription.customer_notes && (
                         <div>
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('Customer Notes')}</p>
@@ -506,7 +496,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                         </div>
                     )}
 
-                    {/* Delivery request */}
                     {prescription.delivery_requested && (
                         <div className="rounded-md border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30 p-3">
                             <p className="text-sm font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2 mb-1">
@@ -519,12 +508,10 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                         </div>
                     )}
 
-                    {/* Chat thread */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
                         <ChatThreadPanel prescription={prescription} />
                     </div>
 
-                    {/* Status update form */}
                     <form onSubmit={submit} className="space-y-5 border-t border-gray-200 dark:border-gray-700 pt-5">
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('Update Status')}</p>
 
@@ -543,17 +530,14 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                             <InputError message={errors.status} className="mt-1" />
                         </div>
 
-                        {/* Medicine availability items */}
                         <div className="space-y-4">
                             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('Medicine Availability')}</p>
 
-                            {/* ── AVAILABLE ── */}
                             <div className="space-y-2">
                                 <p className="text-xs font-semibold text-green-700 dark:text-green-400 flex items-center gap-1">
                                     <CheckCircle2 className="h-3.5 w-3.5" />{t('Available Medicines')}
                                 </p>
 
-                                {/* Compact list of available items */}
                                 {data.medicine_items.some((i) => i.available) && (
                                     <div className="space-y-1.5">
                                         {data.medicine_items.map((item, idx) => item.available && (
@@ -609,7 +593,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                                     </div>
                                 )}
 
-                                {/* Search to add available medicines */}
                                 <AvailableProductSearch
                                     rowIndex="available"
                                     placeholder={t('Search medicine from system to add…')}
@@ -624,7 +607,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
 
                             <div className="border-t border-gray-200 dark:border-gray-700" />
 
-                            {/* ── UNAVAILABLE ── */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <p className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1">
@@ -642,7 +624,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
 
                                 {data.medicine_items.map((item, idx) => !item.available && (
                                     <div key={idx} className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50/30 dark:bg-red-950/10 p-3 space-y-3">
-                                        {/* Name + generic + remove */}
                                         <div className="flex items-start gap-2">
                                             <div className="flex-1 grid grid-cols-2 gap-2">
                                                 <div>
@@ -678,7 +659,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                                             </button>
                                         </div>
 
-                                        {/* Alternatives */}
                                         <div className="space-y-1.5">
                                             <Label className="text-xs text-gray-500 block">{t('Suggest alternatives (same generic)')}</Label>
                                             {item.alternatives.map((alt, altIdx) => (
@@ -705,7 +685,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                                             />
                                         </div>
 
-                                        {/* Note */}
                                         <div>
                                             <Label htmlFor={`med-note-${idx}`} className="text-xs text-gray-500 mb-1 block">
                                                 {t('Note')} <span className="text-gray-400">({t('optional')})</span>
@@ -746,7 +725,6 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
                         </div>
                     </form>
 
-                    {/* Invoice Generation */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-5 space-y-4">
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                             <Receipt className="h-4 w-4 text-blue-600" />
@@ -792,15 +770,19 @@ function PrescriptionDetailModal({ prescription, onClose }: { prescription: Pres
     );
 }
 
-export default function PrescriptionsIndex({ prescriptions, filters }: PrescriptionsIndexProps) {
+export default function PrescriptionsIndex({ prescriptions, filters }: { prescriptions: PrescriptionsPaginated; filters: Record<string, string> }) {
     const { t } = useTranslation();
+    const { auth } = usePage().props as any;
+    const permissions = auth?.permissions || [];
     const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
 
-    // Track customer-message counts per prescription so we can detect new incoming messages
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
+    const [showFilters, setShowFilters] = useState(false);
+
     const prevCustomerMsgCounts = useRef<Record<number, number>>({});
 
     useEffect(() => {
-        // Check for new customer messages after every data refresh
         for (const prescription of prescriptions.data) {
             const customerMsgs = prescription.messages.filter((m) => m.sender_type === 'customer').length;
             const prev = prevCustomerMsgCounts.current[prescription.id] ?? customerMsgs;
@@ -812,7 +794,6 @@ export default function PrescriptionsIndex({ prescriptions, filters }: Prescript
         }
     }, [prescriptions]);
 
-    // Poll for new messages every 30 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({ only: ['prescriptions'] });
@@ -820,15 +801,177 @@ export default function PrescriptionsIndex({ prescriptions, filters }: Prescript
         return () => clearInterval(interval);
     }, []);
 
+    const hasActiveFilters = () => {
+        return searchTerm !== '' || selectedStatus !== 'all';
+    };
+
+    const activeFilterCount = () => {
+        return (searchTerm ? 1 : 0) + (selectedStatus !== 'all' ? 1 : 0);
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        applyFilters();
+    };
+
+    const applyFilters = () => {
+        router.get(route('inventory.prescriptions.index'), {
+            page: 1,
+            search: searchTerm || undefined,
+            status: selectedStatus !== 'all' ? selectedStatus : undefined,
+            per_page: filters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleSort = (field: string) => {
+        const direction = filters.sort_field === field && filters.sort_direction === 'desc' ? 'asc' : 'desc';
+
+        router.get(route('inventory.prescriptions.index'), {
+            sort_field: field,
+            sort_direction: direction,
+            page: 1,
+            search: searchTerm || undefined,
+            status: selectedStatus !== 'all' ? selectedStatus : undefined,
+            per_page: filters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleAction = (action: string, item: any) => {
+        if (action === 'view') {
+            router.visit(route('inventory.prescriptions.show', item.id));
+        }
+    };
+
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setSelectedStatus('all');
+        setShowFilters(false);
+
+        router.get(route('inventory.prescriptions.index'), {
+            page: 1,
+            per_page: filters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
     const breadcrumbs = [
         { title: t('Dashboard'), href: route('dashboard') },
         { title: t('Inventory'), href: route('inventory.dashboard') },
         { title: t('Prescriptions') },
     ];
 
-    const handleStatusFilter = (value: string) => {
-        router.get(route('inventory.prescriptions.index'), { status: value === 'all' ? undefined : value }, { preserveState: true });
-    };
+    const columns = [
+        {
+            key: 'id',
+            label: t('ID'),
+            sortable: true,
+            render: (value: any) => (
+                <span className="font-mono text-sm">#{value}</span>
+            )
+        },
+        {
+            key: 'customer',
+            label: t('Customer'),
+            render: (value: any) => (
+                <div>
+                    <div className="font-medium">{value?.name ?? t('Unknown Customer')}</div>
+                    {value?.code && <div className="text-xs text-gray-500">#{value.code}</div>}
+                </div>
+            )
+        },
+        {
+            key: 'status',
+            label: t('Status'),
+            sortable: true,
+            render: (value: any) => {
+                const config = STATUS_CONFIG[value];
+                const Icon = config?.icon || Clock;
+                const isReady = value === 'ready';
+                return (
+                    <Badge
+                        variant={isReady ? 'default' : (config?.variant || 'secondary')}
+                        className={config?.badgeClass}
+                    >
+                        <Icon className="h-3 w-3 mr-1" />
+                        {t(config?.label || value)}
+                    </Badge>
+                );
+            }
+        },
+        {
+            key: 'delivery_requested',
+            label: t('Delivery'),
+            render: (value: any) => (
+                value ? (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                        <Truck className="h-3 w-3" />
+                        {t('Delivery')}
+                    </Badge>
+                ) : (
+                    <span className="text-gray-400">—</span>
+                )
+            )
+        },
+        {
+            key: 'medicine_items',
+            label: t('Medicines'),
+            render: (value: any) => {
+                if (!Array.isArray(value) || value.length === 0) {
+                    return <span className="text-gray-400">—</span>;
+                }
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {value.slice(0, 3).map((mi: any, i: number) => (
+                            <span
+                                key={i}
+                                className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                    mi.available
+                                        ? 'bg-green-50 text-green-700 border border-green-200'
+                                        : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}
+                            >
+                                {mi.available ? '✓' : '✗'} {mi.medicine_name || t('Medicine')}
+                            </span>
+                        ))}
+                        {value.length > 3 && (
+                            <span className="text-[10px] text-gray-400">+{value.length - 3} more</span>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            key: 'created_at',
+            label: t('Created'),
+            sortable: true,
+            render: (value: any) => (
+                <span className="text-xs text-gray-500">
+                    {new Date(value).toLocaleDateString()}
+                </span>
+            )
+        },
+        {
+            key: 'actions',
+            label: t('Actions'),
+            render: (_: any, row: any) => (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.visit(route('inventory.prescriptions.show', row.id))}
+                    className="shrink-0"
+                >
+                    <Eye className="h-4 w-4 mr-1" />
+                    {t('View')}
+                </Button>
+            )
+        },
+    ];
+
+    const statusOptions = [
+        { value: 'all', label: t('All Statuses') },
+        { value: 'pending', label: t('Pending') },
+        { value: 'processing', label: t('Processing') },
+        { value: 'ready', label: t('Ready for Pickup') },
+    ];
 
     return (
         <PageTemplate
@@ -836,132 +979,62 @@ export default function PrescriptionsIndex({ prescriptions, filters }: Prescript
             description={t('Manage customer prescription requests')}
             url="/inventory/prescriptions"
             breadcrumbs={breadcrumbs}
+            noPadding
         >
-            <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                    <Select value={filters.status ?? 'all'} onValueChange={handleStatusFilter}>
-                        <SelectTrigger className="w-48">
-                            <SelectValue placeholder={t('Filter by status')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('All Statuses')}</SelectItem>
-                            <SelectItem value="pending">{t('Pending')}</SelectItem>
-                            <SelectItem value="processing">{t('Processing')}</SelectItem>
-                            <SelectItem value="ready">{t('Ready for Pickup')}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {prescriptions.total} {t('total')}
-                    </span>
-                </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4 p-4">
+                <SearchAndFilterBar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    onSearch={handleSearch}
+                    filters={[
+                        {
+                            name: 'status',
+                            label: t('Status'),
+                            type: 'select' as const,
+                            value: selectedStatus,
+                            onChange: setSelectedStatus,
+                            options: statusOptions
+                        }
+                    ]}
+                    showFilters={showFilters}
+                    setShowFilters={setShowFilters}
+                    hasActiveFilters={hasActiveFilters}
+                    activeFilterCount={activeFilterCount}
+                    onResetFilters={handleResetFilters}
+                    onApplyFilters={applyFilters}
+                    currentPerPage={filters.per_page?.toString() || "20"}
+                    onPerPageChange={(value) => {
+                        router.get(route('inventory.prescriptions.index'), {
+                            page: 1,
+                            per_page: parseInt(value),
+                            search: searchTerm || undefined,
+                            status: selectedStatus !== 'all' ? selectedStatus : undefined,
+                        }, { preserveState: true, preserveScroll: true });
+                    }}
+                />
+            </div>
 
-                {prescriptions.data.length === 0 ? (
-                    <Card>
-                        <CardContent className="text-center py-12">
-                            <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                            <p className="text-gray-500 dark:text-gray-400">{t('No prescriptions found')}</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-3">
-                        {prescriptions.data.map((prescription) => {
-                            const config = STATUS_CONFIG[prescription.status];
-                            const Icon = config.icon;
-                            const isReady = prescription.status === 'ready';
-                            return (
-                                <Card key={prescription.id} className={isReady ? 'border-green-300 dark:border-green-700' : ''}>
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-4">
-                                            <img
-                                                src={prescription.image_url}
-                                                alt={t('Prescription')}
-                                                className="h-14 w-14 rounded-md object-cover border border-gray-200 dark:border-gray-700 shrink-0"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                                        {prescription.customer?.name ?? t('Unknown Customer')}
-                                                    </span>
-                                                    {prescription.customer?.code && (
-                                                        <span className="text-xs text-gray-400">#{prescription.customer.code}</span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <Badge
-                                                        variant={isReady ? 'default' : config.variant}
-                                                        className={config.badgeClass}
-                                                    >
-                                                        <Icon className="h-3 w-3 mr-1" />
-                                                        {t(config.label)}
-                                                    </Badge>
-                                                    {prescription.delivery_requested && (
-                                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
-                                                            <Truck className="h-3 w-3" />
-                                                            {t('Delivery')}
-                                                        </Badge>
-                                                    )}
-                                                    <span className="text-xs text-gray-400">
-                                                        {new Date(prescription.created_at).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                                {prescription.customer_notes && (
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                                        {prescription.customer_notes}
-                                                    </p>
-                                                )}
-                                                {Array.isArray(prescription.medicine_items) && prescription.medicine_items.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mt-1.5">
-                                                        {prescription.medicine_items.map((mi, i) => (
-                                                            <span
-                                                                key={i}
-                                                                className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                                                    mi.available
-                                                                        ? 'bg-green-50 text-green-700 border border-green-200'
-                                                                        : 'bg-red-50 text-red-700 border border-red-200'
-                                                                }`}
-                                                            >
-                                                                {mi.available ? '✓' : '✗'} {mi.medicine_name || t('Medicine')}
-                                                {mi.generic_name ? ` (${mi.generic_name})` : ''}
-                                                                {!mi.available && mi.alternatives?.length > 0 && (
-                                                                    <span className="text-orange-600"> → {mi.alternatives.map((a) => a.name).join(', ')}</span>
-                                                                )}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => router.visit(route('inventory.prescriptions.show', prescription.id))}
-                                                className="shrink-0"
-                                            >
-                                                <Eye className="h-4 w-4 mr-1" />
-                                                {t('View')}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                )}
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
+                <CrudTable
+                    columns={columns}
+                    actions={[]}
+                    data={prescriptions?.data || []}
+                    from={prescriptions?.from || 1}
+                    onAction={handleAction}
+                    sortField={filters.sort_field}
+                    sortDirection={filters.sort_direction as 'asc' | 'desc' | undefined}
+                    onSort={handleSort}
+                    permissions={permissions}
+                />
 
-                {/* Pagination */}
-                {prescriptions.last_page > 1 && (
-                    <div className="flex justify-center gap-1 pt-2">
-                        {prescriptions.links.map((link, i) => (
-                            <button
-                                key={i}
-                                type="button"
-                                disabled={!link.url}
-                                onClick={() => link.url && router.get(link.url)}
-                                className={`px-3 py-1.5 rounded text-sm border transition-colors ${link.active ? 'bg-primary text-primary-foreground border-primary' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40'}`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        ))}
-                    </div>
-                )}
+                <Pagination
+                    from={prescriptions?.from || 0}
+                    to={prescriptions?.to || 0}
+                    total={prescriptions?.total || 0}
+                    links={prescriptions?.links}
+                    entityName={t("prescriptions")}
+                    onPageChange={(url) => router.get(url)}
+                />
             </div>
 
             {selectedPrescription && (

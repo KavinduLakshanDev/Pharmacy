@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CheckCircle2, Eye, Loader2, Plus, Printer, Receipt, Search, Send, Truck, X, XCircle } from 'lucide-react';
 import { toast } from '@/components/custom-toast';
 import { PageTemplate } from '@/components/page-template';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
