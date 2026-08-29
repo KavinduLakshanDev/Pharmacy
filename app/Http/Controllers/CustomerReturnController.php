@@ -41,13 +41,34 @@ class CustomerReturnController extends Controller
             ])
             ->where('created_by', createdBy());
 
+        if ($request->has('search') && $request->search !== null && trim($request->search) !== '') {
+            $search = $request->search;
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('return_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('code', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('salesTransaction', function ($q) use ($search) {
+                        $q->where('sale_no', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('grn', function ($q) use ($search) {
+                        $q->where('invoice_no', 'like', "%{$search}%")
+                            ->orWhere('grn_no', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         if ($request->filled('branch_id') && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
 
-        $customerReturns = $query->latest('id')
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $perPage = $request->get('per_page', 10);
+
+        $customerReturns = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
         $branches = Branch::query()
             ->where('created_by', createdBy())
@@ -58,7 +79,7 @@ class CustomerReturnController extends Controller
         return Inertia::render('inventory/customer-returns/index', [
             'customerReturns' => $customerReturns,
             'branches' => $branches,
-            'filters' => $request->only(['branch_id', 'per_page']),
+            'filters' => $request->only(['search', 'branch_id', 'sort_field', 'sort_direction', 'per_page']),
         ]);
     }
 

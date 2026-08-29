@@ -93,7 +93,11 @@ class DrugDestroyController extends Controller
                 ->where('master_transactions.stock_type_id', $request->branch_id);
         }
 
-        $stockRows = $query->paginate($request->integer('per_page', 15))->withQueryString();
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $perPage = $request->get('per_page', 15);
+
+        $stockRows = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
         $branches = Branch::query()
             ->where('created_by', createdBy())
@@ -104,7 +108,7 @@ class DrugDestroyController extends Controller
         return Inertia::render('inventory/drug-destroys/index', [
             'stockRows' => $stockRows,
             'branches' => $branches,
-            'filters' => $request->only(['search', 'branch_id', 'per_page']),
+            'filters' => $request->only(['search', 'branch_id', 'sort_field', 'sort_direction', 'per_page']),
         ]);
     }
 

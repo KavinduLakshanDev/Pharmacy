@@ -1,202 +1,279 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageTemplate } from '@/components/page-template';
-import { Pagination } from '@/components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { PageTemplate } from '@/components/page-template';
+import { usePage, router } from '@inertiajs/react';
+import { RotateCcw, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-
-interface Branch {
-  id: number;
-  name: string;
-}
-
-interface StockRow {
-  product_id: number;
-  batch_no: string;
-  branch_id?: number | null;
-  product_name: string;
-  product_sku: string;
-  expiry_date: string | null;
-  stock_in_hand: number | string;
-  unit_cost_price: number | string | null;
-  supplier_return_count: number | string;
-  latest_return_date?: string | null;
-}
-
-interface StockPaginator {
-  data: StockRow[];
-  links: Array<{ url: string | null; label: string; active: boolean }>;
-  from: number;
-  to: number;
-  total: number;
-}
+import { Pagination } from '@/components/ui/pagination';
+import { SearchAndFilterBar } from '@/components/ui/search-and-filter-bar';
+import { CrudTable } from '@/components/CrudTable';
 
 export default function DrugDestroysPage() {
-  const { t } = useTranslation();
+    const { t } = useTranslation();
+    const { auth, stockRows = [], branches = [], filters: pageFilters = {} } = usePage().props as any;
+    const permissions = auth?.permissions || [];
 
-  const { stockRows, branches = [], filters = {} } = usePage<{
-    stockRows?: StockPaginator;
-    branches?: Branch[];
-    filters?: Record<string, string>;
-  }>().props;
+    const [searchTerm, setSearchTerm] = useState(pageFilters.search || '');
+    const [selectedBranch, setSelectedBranch] = useState(pageFilters.branch_id || 'all');
+    const [showFilters, setShowFilters] = useState(false);
 
-  const [destroyDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const hasActiveFilters = () => {
+        return searchTerm !== '' || selectedBranch !== 'all';
+    };
 
-  const breadcrumbs = [
-    { title: t('Dashboard'), href: route('dashboard') },
-    { title: t('Inventory'), href: route('inventory.dashboard') },
-    { title: t('Drug Destroys') },
-  ];
+    const activeFilterCount = () => {
+        return (searchTerm ? 1 : 0) + (selectedBranch !== 'all' ? 1 : 0);
+    };
 
-  const handleBranchFilter = (value: string) => {
-    router.get(route('inventory.drug-destroys.index'), { ...filters, branch_id: value === 'all' ? undefined : value }, { preserveState: true, replace: true });
-  };
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        applyFilters();
+    };
 
-  const formatQuantity = (value: number | string): number => Number(value ?? 0);
+    const applyFilters = () => {
+        router.get(route('inventory.drug-destroys.index'), {
+            page: 1,
+            search: searchTerm || undefined,
+            branch_id: selectedBranch !== 'all' ? selectedBranch : undefined,
+            per_page: pageFilters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
 
-  const navigateToSupplierReturn = (row: StockRow): void => {
-    const query = new URLSearchParams();
+    const handleSort = (field: string) => {
+        const direction = pageFilters.sort_field === field && pageFilters.sort_direction === 'desc' ? 'asc' : 'desc';
 
-    const branchId = row.branch_id ?? (filters.branch_id && filters.branch_id !== 'all' ? Number(filters.branch_id) : null);
+        router.get(route('inventory.drug-destroys.index'), {
+            sort_field: field,
+            sort_direction: direction,
+            page: 1,
+            search: searchTerm || undefined,
+            branch_id: selectedBranch !== 'all' ? selectedBranch : undefined,
+            per_page: pageFilters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
 
-    if (branchId !== null) {
-      query.set('branch_id', String(branchId));
-    }
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setSelectedBranch('all');
+        setShowFilters(false);
 
-    query.set('product_id', String(row.product_id));
-    query.set('batch_no', row.batch_no || '');
+        router.get(route('inventory.drug-destroys.index'), {
+            page: 1,
+            per_page: pageFilters.per_page,
+        }, { preserveState: true, preserveScroll: true });
+    };
 
-    router.visit(`${route('inventory.supplier-returns.create')}?${query.toString()}`);
-  };
+    const navigateToSupplierReturn = (row: any) => {
+        const query = new URLSearchParams();
+        const branchId = row.branch_id ?? (pageFilters.branch_id && pageFilters.branch_id !== 'all' ? Number(pageFilters.branch_id) : null);
 
-  const destroyStock = (row: StockRow): void => {
-    const quantity = formatQuantity(row.stock_in_hand);
-    const unitPrice = Number(row.unit_cost_price ?? 0);
+        if (branchId !== null) {
+            query.set('branch_id', String(branchId));
+        }
+        query.set('product_id', String(row.product_id));
+        query.set('batch_no', row.batch_no || '');
 
-    if (quantity <= 0) {
-      return;
-    }
+        router.visit(`${route('inventory.supplier-returns.create')}?${query.toString()}`);
+    };
 
-    if (!window.confirm(t('Are you sure you want to destroy this stock? This action cannot be undone.'))) {
-      return;
-    }
+    const destroyStock = (row: any) => {
+        if (Number(row.stock_in_hand) <= 0) {
+            return;
+        }
 
-    router.post(route('inventory.drug-destroys.store'), {
-      ...(row.branch_id ? { branch_id: row.branch_id } : (filters.branch_id && filters.branch_id !== 'all' ? { branch_id: filters.branch_id } : {})),
-      destroy_date: destroyDate,
-      notes: 'Expired stock destruction',
-      items: [
+        if (!window.confirm(t('Are you sure you want to destroy this stock? This action cannot be undone.'))) {
+            return;
+        }
+
+        const destroyDate = new Date().toISOString().split('T')[0];
+
+        router.post(route('inventory.drug-destroys.store'), {
+            ...(row.branch_id ? { branch_id: row.branch_id } : (pageFilters.branch_id && pageFilters.branch_id !== 'all' ? { branch_id: pageFilters.branch_id } : {})),
+            destroy_date: destroyDate,
+            notes: 'Expired stock destruction',
+            items: [
+                {
+                    product_id: row.product_id,
+                    batch_no: row.batch_no || null,
+                    expiry_date: row.expiry_date || null,
+                    quantity: Number(row.stock_in_hand),
+                    unit_price: Number(row.unit_cost_price ?? 0),
+                },
+            ],
+        });
+    };
+
+    const breadcrumbs = [
+        { title: t('Dashboard'), href: route('dashboard') },
+        { title: t('Inventory'), href: route('inventory.dashboard') },
+        { title: t('Drug Destroys') },
+    ];
+
+    const formatMoney = (value: number) => {
+        const amount = Number.isFinite(value) ? value : 0;
+        return window.appSettings?.formatCurrency?.(amount) || `Rs. ${amount.toFixed(2)}`;
+    };
+
+    const columns = [
         {
-          product_id: row.product_id,
-          batch_no: row.batch_no || null,
-          expiry_date: row.expiry_date || null,
-          quantity,
-          unit_price: unitPrice,
+            key: 'product_name',
+            label: t('Product'),
+            sortable: true,
+            render: (value: any, row: any) => (
+                <div>
+                    <div className="font-medium">{value}</div>
+                    <div className="text-xs text-gray-500">SKU: {row.product_sku}</div>
+                </div>
+            )
         },
-      ],
-    });
-  };
+        {
+            key: 'batch_no',
+            label: t('Batch'),
+            render: (value: any) => value || t('No batch')
+        },
+        {
+            key: 'expiry_date',
+            label: t('Expiry Date'),
+            sortable: true,
+            render: (value: any) => value ?? t('Unknown')
+        },
+        {
+            key: 'stock_in_hand',
+            label: t('Quantity'),
+            sortable: true,
+            render: (value: any) => (
+                <span className="tabular-nums">{Number(value ?? 0).toFixed(2)}</span>
+            )
+        },
+        {
+            key: 'supplier_return_count',
+            label: t('Supplier Return'),
+            render: (value: any) => (
+                Number(value) > 0 ? (
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        {t('Returned')}
+                    </span>
+                ) : (
+                    <span className="text-xs text-gray-500">{t('Not returned')}</span>
+                )
+            )
+        },
+        {
+            key: 'latest_return_date',
+            label: t('Last Return Date'),
+            render: (value: any) => value ?? '—'
+        },
+        {
+            key: 'unit_cost_price',
+            label: t('Unit Cost'),
+            render: (value: any) => formatMoney(Number(value ?? 0))
+        },
+        {
+            key: 'actions',
+            label: t('Actions'),
+            render: (_: any, row: any) => {
+                if (Number(row.supplier_return_count) > 0) {
+                    return (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                            {t('Already returned')}
+                        </span>
+                    );
+                }
+                return (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigateToSupplierReturn(row)}
+                        >
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            {t('Create Return')}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => destroyStock(row)}
+                        >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            {t('Destroy')}
+                        </Button>
+                    </div>
+                );
+            }
+        },
+    ];
 
-  return (
-    <PageTemplate
-      title={t('Drug Destroys')}
-      description={t('Review expiring stock and destroy items that have not been returned to the supplier.')}
-      url="/inventory/drug-destroys"
-      breadcrumbs={breadcrumbs}
-      noPadding
-    >
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('Expiring drugs (next 3 months)')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-500">{t('Branch')}</span>
-                <Select value={filters.branch_id ?? 'all'} onValueChange={handleBranchFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder={t('All Branches')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Branches')}</SelectItem>
-                    {branches.map((branch) => (
-                      <SelectItem key={branch.id} value={String(branch.id)}>
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="text-sm text-slate-500">{t('Destroy stock only when no supplier return exists for the selected batch.')}</p>
-            </div>
-            {stockRows?.data?.length ? (
-              <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">{t('Product')}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('Batch')}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('Expiry Date')}</th>
-                      <th className="px-4 py-3 text-right font-semibold">{t('Quantity')}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('Supplier Return')}</th>
-                      <th className="px-4 py-3 text-right font-semibold">{t('Last Return Date')}</th>
-                      <th className="px-4 py-3 text-right font-semibold">{t('Action')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {stockRows.data.map((row) => (
-                      <tr key={`${row.product_id}-${row.batch_no}`}>
-                        <td className="whitespace-nowrap px-4 py-3 font-medium">{row.product_name}</td>
-                        <td className="whitespace-nowrap px-4 py-3">{row.batch_no || t('No batch')}</td>
-                        <td className="whitespace-nowrap px-4 py-3">{row.expiry_date ?? t('Unknown')}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right">{formatQuantity(row.stock_in_hand).toFixed(2)}</td>
-                        <td className="whitespace-nowrap px-4 py-3">{formatQuantity(row.supplier_return_count) > 0 ? t('Returned') : t('Not returned')}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right">{row.latest_return_date ?? '-'}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right space-x-2">
-                          {formatQuantity(row.supplier_return_count) === 0 ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => navigateToSupplierReturn(row)}
-                              >
-                                {t('Create Return')}
-                              </Button>
-                              <Button size="sm" variant="destructive" onClick={() => destroyStock(row)}>
-                                {t('Destroy')}
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                              {t('Already returned')}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500">{t('No expiring drugs found for the next three months.')}</p>
-            )}
-            {stockRows && stockRows.total > 0 ? (
-              <div className="mt-4">
-                <Pagination
-                  from={stockRows.from}
-                  to={stockRows.to}
-                  total={stockRows.total}
-                  links={stockRows.links}
-                  entityName={t('expiring drugs').toLowerCase()}
+    const branchOptions = [
+        { value: 'all', label: t('All Branches') },
+        ...(branches || []).map((branch: any) => ({
+            value: branch.id.toString(),
+            label: branch.name
+        }))
+    ];
+
+    return (
+        <PageTemplate
+            title={t('Drug Destroys')}
+            description={t('Review expiring stock and destroy items that have not been returned to the supplier.')}
+            url="/inventory/drug-destroys"
+            breadcrumbs={breadcrumbs}
+            noPadding
+        >
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4 p-4">
+                <SearchAndFilterBar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    onSearch={handleSearch}
+                    filters={[
+                        {
+                            name: 'branch_id',
+                            label: t('Branch'),
+                            type: 'select' as const,
+                            value: selectedBranch,
+                            onChange: setSelectedBranch,
+                            options: branchOptions
+                        }
+                    ]}
+                    showFilters={showFilters}
+                    setShowFilters={setShowFilters}
+                    hasActiveFilters={hasActiveFilters}
+                    activeFilterCount={activeFilterCount}
+                    onResetFilters={handleResetFilters}
+                    onApplyFilters={applyFilters}
+                    currentPerPage={pageFilters.per_page?.toString() || "10"}
+                    onPerPageChange={(value) => {
+                        router.get(route('inventory.drug-destroys.index'), {
+                            page: 1,
+                            per_page: parseInt(value),
+                            search: searchTerm || undefined,
+                            branch_id: selectedBranch !== 'all' ? selectedBranch : undefined,
+                        }, { preserveState: true, preserveScroll: true });
+                    }}
                 />
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
-    </PageTemplate>
-  );
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
+                <CrudTable
+                    columns={columns}
+                    actions={[]}
+                    data={stockRows?.data || []}
+                    from={stockRows?.from || 1}
+                    onAction={() => {}}
+                    sortField={pageFilters.sort_field}
+                    sortDirection={pageFilters.sort_direction}
+                    onSort={handleSort}
+                    permissions={permissions}
+                />
+
+                <Pagination
+                    from={stockRows?.from || 0}
+                    to={stockRows?.to || 0}
+                    total={stockRows?.total || 0}
+                    links={stockRows?.links}
+                    entityName={t("expiring drugs")}
+                    onPageChange={(url) => router.get(url)}
+                />
+            </div>
+        </PageTemplate>
+    );
 }

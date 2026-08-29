@@ -32,13 +32,30 @@ class SupplierReturnController extends Controller
             ->withCount('items')
             ->where('created_by', createdBy());
 
+        if ($request->has('search') && $request->search !== null && trim($request->search) !== '') {
+            $search = $request->search;
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('return_number', 'like', "%{$search}%")
+                    ->orWhereHas('supplier', function ($q) use ($search) {
+                        $q->where('company_name', 'like', "%{$search}%")
+                            ->orWhere('contact_person_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('grn', function ($q) use ($search) {
+                        $q->where('invoice_no', 'like', "%{$search}%")
+                            ->orWhere('grn_no', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         if ($request->filled('branch_id') && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
 
-        $supplierReturns = $query->latest('id')
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $perPage = $request->get('per_page', 10);
+
+        $supplierReturns = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
         $branches = Branch::query()
             ->where('created_by', createdBy())
@@ -49,7 +66,7 @@ class SupplierReturnController extends Controller
         return Inertia::render('inventory/supplier-returns/index', [
             'supplierReturns' => $supplierReturns,
             'branches' => $branches,
-            'filters' => $request->only(['branch_id', 'per_page']),
+            'filters' => $request->only(['search', 'branch_id', 'sort_field', 'sort_direction', 'per_page']),
         ]);
     }
 
