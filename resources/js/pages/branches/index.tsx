@@ -13,7 +13,7 @@ import { SearchAndFilterBar } from '@/components/ui/search-and-filter-bar';
 
 export default function Branches() {
   const { t } = useTranslation();
-  const { auth, branches, filters: pageFilters = {} } = usePage().props;
+  const { auth, branches, filters: pageFilters = {} } = usePage().props as any;
   const permissions = auth?.permissions || [];
 
   // State
@@ -22,8 +22,8 @@ export default function Branches() {
   const [showFilters, setShowFilters] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null);
-  const [formMode, setFormMode] = useState('create');
+  const [currentItem, setCurrentItem] = useState<any>(null);
+  const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
 
   // Check if any filters are active
   const hasActiveFilters = () => {
@@ -35,7 +35,7 @@ export default function Branches() {
     return (searchTerm ? 1 : 0) + (selectedStatus !== 'all' ? 1 : 0);
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     applyFilters();
   };
@@ -49,7 +49,7 @@ export default function Branches() {
     }, { preserveState: true, preserveScroll: true });
   };
 
-  const handleSort = (field) => {
+  const handleSort = (field: string) => {
     const direction = pageFilters.sort_field === field && pageFilters.sort_direction === 'desc' ? 'asc' : 'desc';
 
     router.get(route('branches.index'), {
@@ -62,7 +62,7 @@ export default function Branches() {
     }, { preserveState: true, preserveScroll: true });
   };
 
-  const handleAction = (action, item) => {
+  const handleAction = (action: string, item: any) => {
     setCurrentItem(item);
 
     switch (action) {
@@ -89,7 +89,7 @@ export default function Branches() {
     setIsFormModalOpen(true);
   };
 
-  const handleFormSubmit = (formData) => {
+  const handleFormSubmit = (formData: any) => {
     if (formMode === 'create') {
       toast.loading(t('Creating branch...'));
 
@@ -97,10 +97,10 @@ export default function Branches() {
         onSuccess: (page) => {
           setIsFormModalOpen(false);
           toast.dismiss();
-          if (page.props.flash.success) {
-            toast.success(t(page.props.flash.success));
-          } else if (page.props.flash.error) {
-            toast.error(t(page.props.flash.error));
+          if ((page.props as any).flash.success) {
+            toast.success(t((page.props as any).flash.success));
+          } else if ((page.props as any).flash.error) {
+            toast.error(t((page.props as any).flash.error));
           }
         },
         onError: (errors) => {
@@ -115,14 +115,14 @@ export default function Branches() {
     } else if (formMode === 'edit') {
       toast.loading(t('Updating branch...'));
 
-      router.put(route('branches.update', currentItem.id), formData, {
+      router.put(route('branches.update', currentItem?.id), formData, {
         onSuccess: (page) => {
           setIsFormModalOpen(false);
           toast.dismiss();
-          if (page.props.flash.success) {
-            toast.success(t(page.props.flash.success));
-          } else if (page.props.flash.error) {
-            toast.error(t(page.props.flash.error));
+          if ((page.props as any).flash.success) {
+            toast.success(t((page.props as any).flash.success));
+          } else if ((page.props as any).flash.error) {
+            toast.error(t((page.props as any).flash.error));
           }
         },
         onError: (errors) => {
@@ -140,14 +140,14 @@ export default function Branches() {
   const handleDeleteConfirm = () => {
     toast.loading(t('Deleting branch...'));
 
-    router.delete(route('branches.destroy', currentItem.id), {
+    router.delete(route('branches.destroy', currentItem?.id), {
       onSuccess: (page) => {
         setIsDeleteModalOpen(false);
         toast.dismiss();
-        if (page.props.flash.success) {
-          toast.success(t(page.props.flash.success));
-        } else if (page.props.flash.error) {
-          toast.error(t(page.props.flash.error));
+        if ((page.props as any).flash.success) {
+          toast.success(t((page.props as any).flash.success));
+        } else if ((page.props as any).flash.error) {
+          toast.error(t((page.props as any).flash.error));
         }
       },
       onError: (errors) => {
@@ -161,17 +161,17 @@ export default function Branches() {
     });
   };
 
-  const handleToggleStatus = (branch) => {
+  const handleToggleStatus = (branch: any) => {
     const newStatus = branch.status === 'active' ? 'inactive' : 'active';
     toast.loading(`${newStatus === 'active' ? t('Activating') : t('Deactivating')} branch...`);
 
     router.put(route('branches.toggle-status', branch.id), {}, {
       onSuccess: (page) => {
         toast.dismiss();
-        if (page.props.flash.success) {
-          toast.success(t(page.props.flash.success));
-        } else if (page.props.flash.error) {
-          toast.error(t(page.props.flash.error));
+        if ((page.props as any).flash.success) {
+          toast.success(t((page.props as any).flash.success));
+        } else if ((page.props as any).flash.error) {
+          toast.error(t((page.props as any).flash.error));
         }
       },
       onError: (errors) => {
@@ -197,7 +197,12 @@ export default function Branches() {
   };
 
   // Define page actions
-  const pageActions = [];
+  const pageActions: Array<{
+    label: string;
+    icon: React.ReactNode;
+    variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+    onClick: () => void;
+  }> = [];
 
   // Add the "Add New Branch" button if user has permission
   if (hasPermission(permissions, 'create-branches')) {
@@ -224,22 +229,22 @@ export default function Branches() {
     {
       key: 'address',
       label: t('Address'),
-      render: (value) => value || '-'
+      render: (value: any) => value || '-'
     },
     {
       key: 'phone',
       label: t('Phone'),
-      render: (value) => value || '-'
+      render: (value: any) => value || '-'
     },
     {
       key: 'email',
       label: t('Email'),
-      render: (value) => value || '-'
+      render: (value: any) => value || '-'
     },
     {
       key: 'status',
       label: t('Status'),
-      render: (value) => {
+      render: (value: any) => {
         return (
           <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${value === 'active'
             ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
@@ -254,7 +259,7 @@ export default function Branches() {
       key: 'created_at',
       label: t('Created At'),
       sortable: true,
-      render: (value) => window.appSettings?.formatDateTime(value, false) || new Date(value).toLocaleDateString()
+      render: (value: any) => window.appSettings?.formatDateTime(value, false) || new Date(value).toLocaleDateString()
     }
   ];
 
@@ -315,7 +320,7 @@ export default function Branches() {
             {
               name: 'status',
               label: t('Status'),
-              type: 'select',
+              type: 'select' as const,
               value: selectedStatus,
               onChange: setSelectedStatus,
               options: statusOptions
@@ -328,7 +333,7 @@ export default function Branches() {
           onResetFilters={handleResetFilters}
           onApplyFilters={applyFilters}
           currentPerPage={pageFilters.per_page?.toString() || "10"}
-          onPerPageChange={(value) => {
+          onPerPageChange={(value: string) => {
             router.get(route('branches.index'), {
               page: 1,
               per_page: parseInt(value),
@@ -348,12 +353,11 @@ export default function Branches() {
           from={branches?.from || 1}
           onAction={handleAction}
           sortField={pageFilters.sort_field}
-          sortDirection={pageFilters.sort_direction}
+          sortDirection={pageFilters.sort_direction as 'asc' | 'desc' | undefined}
           onSort={handleSort}
           permissions={permissions}
           entityPermissions={{
             view: 'view-branches',
-            create: 'create-branches',
             edit: 'edit-branches',
             delete: 'delete-branches'
           }}
@@ -366,7 +370,7 @@ export default function Branches() {
           total={branches?.total || 0}
           links={branches?.links}
           entityName={t("branches")}
-          onPageChange={(url) => router.get(url)}
+          onPageChange={(url: string) => router.get(url)}
         />
       </div>
 

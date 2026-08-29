@@ -97,10 +97,10 @@ export default function Brands() {
         onSuccess: (page) => {
           setIsFormModalOpen(false);
           toast.dismiss();
-          if (page.props.flash.success) {
-            toast.success(t(page.props.flash.success));
-          } else if (page.props.flash.error) {
-            toast.error(t(page.props.flash.error));
+          if ((page.props as any).flash.success) {
+            toast.success(t((page.props as any).flash.success));
+          } else if ((page.props as any).flash.error) {
+            toast.error(t((page.props as any).flash.error));
           }
         },
         onError: (errors) => {
@@ -119,10 +119,10 @@ export default function Brands() {
         onSuccess: (page) => {
           setIsFormModalOpen(false);
           toast.dismiss();
-          if (page.props.flash.success) {
-            toast.success(t(page.props.flash.success));
-          } else if (page.props.flash.error) {
-            toast.error(t(page.props.flash.error));
+          if ((page.props as any).flash.success) {
+            toast.success(t((page.props as any).flash.success));
+          } else if ((page.props as any).flash.error) {
+            toast.error(t((page.props as any).flash.error));
           }
         },
         onError: (errors) => {
@@ -144,10 +144,10 @@ export default function Brands() {
       onSuccess: (page) => {
         setIsDeleteModalOpen(false);
         toast.dismiss();
-        if (page.props.flash.success) {
-          toast.success(t(page.props.flash.success));
-        } else if (page.props.flash.error) {
-          toast.error(t(page.props.flash.error));
+        if ((page.props as any).flash.success) {
+          toast.success(t((page.props as any).flash.success));
+        } else if ((page.props as any).flash.error) {
+          toast.error(t((page.props as any).flash.error));
         }
       },
       onError: (errors) => {
@@ -168,10 +168,10 @@ export default function Brands() {
     router.put(route('brands.toggle-status', brand.id), {}, {
       onSuccess: (page) => {
         toast.dismiss();
-        if (page.props.flash.success) {
-          toast.success(t(page.props.flash.success));
-        } else if (page.props.flash.error) {
-          toast.error(t(page.props.flash.error));
+        if ((page.props as any).flash.success) {
+          toast.success(t((page.props as any).flash.success));
+        } else if ((page.props as any).flash.error) {
+          toast.error(t((page.props as any).flash.error));
         }
       },
       onError: (errors) => {
@@ -197,7 +197,12 @@ export default function Brands() {
   };
 
   // Define page actions
-  const pageActions = [];
+  const pageActions: Array<{
+    label: string;
+    icon: React.ReactNode;
+    variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+    onClick: () => void;
+  }> = [];
 
   // Add the "Add New Brand" button if user has permission
   if (hasPermission(permissions, 'create-brands')) {
@@ -346,7 +351,6 @@ export default function Brands() {
           permissions={permissions}
           entityPermissions={{
             view: 'view-brands',
-            create: 'create-brands',
             edit: 'edit-brands',
             delete: 'delete-brands'
           }}

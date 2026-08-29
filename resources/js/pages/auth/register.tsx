@@ -42,8 +42,8 @@ export default function Register({ referralCode, planId }: { referralCode?: stri
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+        setData('recaptcha_token', recaptchaToken);
         post(route('register'), {
-            data: { ...data, recaptcha_token: recaptchaToken },
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };

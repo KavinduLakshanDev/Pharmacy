@@ -750,15 +750,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         //     Route::put('opportunities/{opportunity}/activities/{activity}/comment', [OpportunityCommentController::class, 'updateActivity'])->middleware('permission:edit-opportunities')->name('opportunities.comments.update-activity');
         // });
 
-        // Campaign Type routes
-        // Route::middleware('permission:manage-campaign-types')->group(function () {
-        //     Route::get('campaign-types', [CampaignTypeController::class, 'index'])->middleware('permission:manage-campaign-types')->name('campaign-types.index');
-        //     Route::post('campaign-types', [CampaignTypeController::class, 'store'])->middleware('permission:create-campaign-types')->name('campaign-types.store');
-        //     Route::put('campaign-types/{campaignType}', [CampaignTypeController::class, 'update'])->middleware('permission:edit-campaign-types')->name('campaign-types.update');
-        //     Route::delete('campaign-types/{campaignType}', [CampaignTypeController::class, 'destroy'])->middleware('permission:delete-campaign-types')->name('campaign-types.destroy');
-        //     Route::put('campaign-types/{campaignType}/toggle-status', [CampaignTypeController::class, 'toggleStatus'])->middleware('permission:toggle-status-campaign-types')->name('campaign-types.toggle-status');
-        // });
-
         // Target List routes
         // Route::middleware('permission:manage-target-lists')->group(function () {
         //     Route::get('target-lists', [TargetListController::class, 'index'])->middleware('permission:manage-target-lists')->name('target-lists.index');
@@ -768,15 +759,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         //     Route::put('target-lists/{targetList}/toggle-status', [TargetListController::class, 'toggleStatus'])->middleware('permission:toggle-status-target-lists')->name('target-lists.toggle-status');
         // });
 
-        // Campaign routes
-        // Route::middleware('permission:manage-campaigns')->group(function () {
-        //     Route::get('campaigns', [CampaignController::class, 'index'])->middleware('permission:manage-campaigns')->name('campaigns.index');
-        //     Route::post('campaigns', [CampaignController::class, 'store'])->middleware('permission:create-campaigns')->name('campaigns.store');
-        //     Route::put('campaigns/{campaign}', [CampaignController::class, 'update'])->middleware('permission:edit-campaigns')->name('campaigns.update');
-        //     Route::delete('campaigns/{campaign}', [CampaignController::class, 'destroy'])->middleware('permission:delete-campaigns')->name('campaigns.destroy');
-        //     Route::get('campaigns/{campaign}', [CampaignController::class, 'show'])->middleware('permission:view-campaigns')->name('campaigns.show');
-        //     Route::put('campaigns/{campaign}/toggle-status', [CampaignController::class, 'toggleStatus'])->middleware('permission:toggle-status-campaigns')->name('campaigns.toggle-status');
-        // });
+        
 
         // Shipping Provider Type routes
         // Route::middleware('permission:manage-shipping-provider-types')->group(function () {

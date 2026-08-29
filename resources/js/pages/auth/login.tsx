@@ -12,7 +12,6 @@ import AuthButton from "@/components/auth/auth-button";
 import Recaptcha, { useRecaptchaSettings } from "@/components/recaptcha";
 import { useBrand } from "@/contexts/BrandContext";
 import { THEME_COLORS } from "@/hooks/use-appearance";
-import { Button } from "@/components/ui/button";
 import { AtSignIcon } from "@/components/icons/at-sign";
 import { KeyCircleIcon } from "@/components/icons/key-circle";
 
