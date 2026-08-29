@@ -10,7 +10,8 @@ import { CrudTable } from '@/components/CrudTable';
 
 export default function InventoryProductLookupPage() {
     const { t } = useTranslation();
-    const { products = [], filters: pageFilters = {} } = usePage().props as any;
+    const { auth, products = [], filters: pageFilters = {} } = usePage().props as any;
+    const permissions = auth?.permissions || [];
 
     const [searchTerm, setSearchTerm] = useState(pageFilters.search || '');
     const [showFilters, setShowFilters] = useState(false);
@@ -196,6 +197,7 @@ export default function InventoryProductLookupPage() {
                     sortField={pageFilters.sort_field}
                     sortDirection={pageFilters.sort_direction}
                     onSort={handleSort}
+                    permissions={permissions}
                 />
 
                 {/* Pagination section */}

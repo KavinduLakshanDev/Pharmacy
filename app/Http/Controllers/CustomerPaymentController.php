@@ -19,14 +19,47 @@ use Inertia\Response;
 
 class CustomerPaymentController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = CustomerPayment::query()
+            ->with(['customer', 'bankAccount'])
+            ->where('created_by', createdBy());
+
+        if ($request->has('search') && $request->search !== null && trim($request->search) !== '') {
+            $search = $request->search;
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->whereHas('customer', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                })
+                    ->orWhere('payment_method', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $perPage = $request->get('per_page', 10);
+
+        $payments = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+
         return Inertia::render('customer-payments/index', [
-            'bankAccounts' => FinanceAccount::query()
-                ->where('account_type', FinanceAccountType::Bank)
-                ->where('status', 'active')
-                ->orderBy('name')
-                ->get(['id', 'name', 'bank_account_no', 'bank_branch']),
+            'payments' => $payments,
+            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'per_page']),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        $bankAccounts = FinanceAccount::query()
+            ->where('account_type', FinanceAccountType::Bank)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'bank_account_no', 'bank_branch']);
+
+        return Inertia::render('customer-payments/create', [
+            'bankAccounts' => $bankAccounts,
         ]);
     }
 
