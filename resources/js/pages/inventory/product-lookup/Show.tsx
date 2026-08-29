@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { router, usePage } from '@inertiajs/react';
-import { BookOpen, ExternalLink, Globe, Loader2, Search } from 'lucide-react';
+import { ArrowLeft, BookOpen, ExternalLink, Globe, Loader2, Package, Search, Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -40,7 +40,6 @@ export default function InventoryProductLookupShowPage() {
     useEffect(() => {
         setWiki({ status: 'loading', data: null });
 
-        // Try the product name first, then fall back to the generic name
         const searchTerms = [product.name, product.generic_name?.name].filter(Boolean) as string[];
         let cancelled = false;
 
@@ -75,40 +74,67 @@ export default function InventoryProductLookupShowPage() {
 
     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(product.name + ' pharmacy drug')}`;
 
+    const formatCurrency = (amount: number) => window.appSettings?.formatCurrency(Number(amount || 0)) || `$${Number(amount || 0).toFixed(2)}`;
+
+    const breadcrumbs = [
+        { title: t('Dashboard'), href: route('dashboard') },
+        { title: t('Inventory'), href: route('inventory.dashboard') },
+        { title: t('Product Lookup'), href: route('inventory.product-lookup') },
+        { title: product.name },
+    ];
+
     return (
         <PageTemplate
             title={product.name}
             description={t('Inventory details and external knowledge for this product.')}
             url={`/inventory/product-lookup/${product.id}`}
-            breadcrumbs={[
-                { title: t('Dashboard'), href: route('dashboard') },
-                { title: t('Inventory'), href: route('inventory.dashboard') },
-                { title: t('Product Lookup'), href: route('inventory.product-lookup') },
-                { title: product.name },
-            ]}
+            breadcrumbs={breadcrumbs}
             actions={[
                 {
-                    label: t('Back'),
+                    label: t('Back to Product Lookup'),
+                    icon: <ArrowLeft className="h-4 w-4 mr-2" />,
                     variant: 'outline',
                     onClick: () => router.visit(route('inventory.product-lookup')),
                 },
             ]}
-            noPadding
         >
-            <div className="mx-auto max-w-6xl space-y-6">
-                {/* Product info card */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            {product.name}
+            <div className="mx-auto space-y-6">
+                {/* Header Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl shadow-sm border p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                    <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
+                            </div>
                             {product.sku && (
-                                <Badge variant="outline" className="font-mono text-xs">
-                                    {product.sku}
-                                </Badge>
+                                <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">SKU: {product.sku}</p>
                             )}
+                            {product.description && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">{product.description}</p>
+                            )}
+                        </div>
+                        <div className="flex flex-col items-end gap-3">
+                            <div className="text-right">
+                                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                                    {product.price != null ? formatCurrency(Number(product.price)) : '—'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Product Info Card */}
+                <Card className="shadow-sm">
+                    <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <Tag className="h-5 w-5" />
+                            {t('Product Information')}
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                             {[
                                 { label: t('Brand'), value: product.brand?.name },
@@ -118,11 +144,7 @@ export default function InventoryProductLookupShowPage() {
                                 { label: t('Unit'), value: product.unit?.name },
                                 {
                                     label: t('Price'),
-                                    value:
-                                        product.price != null
-                                            ? (window.appSettings?.formatCurrency?.(Number(product.price)) ??
-                                              Number(product.price).toFixed(2))
-                                            : null,
+                                    value: product.price != null ? formatCurrency(Number(product.price)) : null,
                                 },
                             ].map(({ label, value }) => (
                                 <div key={label}>
@@ -131,13 +153,6 @@ export default function InventoryProductLookupShowPage() {
                                 </div>
                             ))}
                         </div>
-
-                        {product.description ? (
-                            <div className="mt-4 border-t pt-4">
-                                <p className="text-xs font-medium text-gray-500">{t('Internal description')}</p>
-                                <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{product.description}</p>
-                            </div>
-                        ) : null}
 
                         <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
                             <Button size="sm" asChild>
@@ -160,15 +175,15 @@ export default function InventoryProductLookupShowPage() {
                     </CardContent>
                 </Card>
 
-                {/* Wikipedia card */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                {/* Wikipedia Card */}
+                <Card className="shadow-sm">
+                    <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
                             <BookOpen className="h-5 w-5 text-gray-500" />
-                            {t('Wikipedia summary')}
+                            {t('Wikipedia Summary')}
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
                         {wiki.status === 'loading' && (
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <Loader2 className="h-4 w-4 animate-spin" />

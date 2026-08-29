@@ -25,11 +25,15 @@ class ProductLookupController extends Controller
             });
         }
 
-        $products = $query->orderBy('name')->limit(50)->get();
+        $sortField = $request->get('sort_field', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
+        $perPage = $request->get('per_page', 10);
 
-        return Inertia::render('inventory/product-lookup', [
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+
+        return Inertia::render('inventory/product-lookup/Index', [
             'products' => $products,
-            'filters' => $request->only('search'),
+            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'per_page']),
         ]);
     }
 
@@ -41,7 +45,7 @@ class ProductLookupController extends Controller
             ->where('status', 'active')
             ->findOrFail($product);
 
-        return Inertia::render('inventory/product-lookup-show', [
+        return Inertia::render('inventory/product-lookup/Show', [
             'product' => $product,
         ]);
     }
