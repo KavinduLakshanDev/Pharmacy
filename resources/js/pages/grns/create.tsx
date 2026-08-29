@@ -297,7 +297,7 @@ export default function GrnCreate() {
                 <div className="flex gap-2">
                   <Input
                     value={formData.grn_no}
-                    onChange={(e) => handleFormChange('grn_no', e.target.value)}
+                    readOnly
                     required
                   />
                   <Button type="button" variant="outline" disabled={isGeneratingGrnNo} onClick={() => fetchNextGrnNo(formData.grn_date)}>
@@ -311,7 +311,7 @@ export default function GrnCreate() {
                 <div className="flex gap-2">
                   <Input
                     value={formData.batch_no}
-                    onChange={(e) => handleFormChange('batch_no', e.target.value)}
+                    readOnly
                   />
                   <Button type="button" variant="outline" disabled={isGeneratingBatchNo} onClick={() => fetchNextBatchNo(formData.grn_date)}>
                     {t('Generate')}
