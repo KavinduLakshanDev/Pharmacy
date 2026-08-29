@@ -39,7 +39,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    host: "unitec-phamacy.test",
+    // host: "unitec-phamacy.test",
     port: 5175,
     strictPort: true,
     headers: {
