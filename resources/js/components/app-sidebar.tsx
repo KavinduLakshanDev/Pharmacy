@@ -415,10 +415,10 @@ export function AppSidebar() {
             financeChildren.push({ title: t('Petty Cash'), href: route('finance.pettycash.index') });
         }
 
-        if (hasPermission(permissions, 'view-inventory-transactions')) {
-            // financeChildren.push({ title: t('Customer Payments'), href: route('inventory.customer-payments.index') });
-            financeChildren.push({ title: t('Supplier Payments'), href: route('inventory.supplier-payments.index') });
-        }
+        // if (hasPermission(permissions, 'view-inventory-transactions')) {
+        //     // financeChildren.push({ title: t('Customer Payments'), href: route('inventory.customer-payments.index') });
+        //     financeChildren.push({ title: t('Supplier Payments'), href: route('inventory.supplier-payments.index') });
+        // }
 
         if (financeChildren.length > 0) {
             items.push({
