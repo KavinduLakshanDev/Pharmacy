@@ -58,7 +58,7 @@ class InvoiceSkrillPaymentController extends Controller
                 'detail1_text' => 'Invoice #' . $invoice->invoice_number . ' - ' . ucfirst($validated['payment_type']) . ' payment',
                 'pay_from_email' => $validated['email'],
                 'recipient_description' => $company->name ?? 'Invoice Payment',
-                'logo_url' => config('app.url') . '/images/logos/logo-light.png',
+                'logo_url' => config('app.url') . '/images/logos/logo-light.jpeg',
             ];
 
             // Create form and auto-submit to Skrill

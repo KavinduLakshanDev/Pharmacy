@@ -134,11 +134,11 @@ export default function GrnIndex() {
           onClick: handleAddNew,
         },
       ]}
+      noPadding
     >
-      <div className="space-y-4">
-        <div className="rounded-lg bg-white shadow">
-          <div className="p-4">
-            <SearchAndFilterBar
+      {/* Search and filters section */}
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4 p-4">
+        <SearchAndFilterBar
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               onSearch={handleSearch}
@@ -157,7 +157,10 @@ export default function GrnIndex() {
                   }, { preserveState: true, preserveScroll: true });
                 }}
               />
+      </div>
 
+      {/* Content section */}
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
             <CrudTable
               columns={columns}
               actions={actions}
@@ -179,8 +182,6 @@ export default function GrnIndex() {
               entityName={t('GRNs')}
               onPageChange={(url) => router.get(url)}
             />
-          </div>
-        </div>
       </div>
 
       <CrudDeleteModal

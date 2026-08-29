@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import SearchableSelect from '@/components/ui/searchable-select';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { toast } from '@/components/custom-toast';
@@ -129,7 +128,7 @@ export default function ProductCreate() {
       ]}
 
     >
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
         {/* Categories and Settings */}
         <Card>
           <CardHeader>
@@ -152,72 +151,62 @@ export default function ProductCreate() {
                   </SelectContent>
                 </Select>
               </div> */}
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Generic Name')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <SearchableSelect
-                    value={formData.generic_name_id}
-                    onValueChange={(value) => handleInputChange('generic_name_id', value)}
-                    options={genericNames?.map((gn: any) => ({
-                      value: gn.id.toString(),
-                      label: gn.name,
-                    }))}
-                    placeholder={t('Select generic name')}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Generic Name')}</label>
+                <SearchableSelect
+                  value={formData.generic_name_id}
+                  onValueChange={(value) => handleInputChange('generic_name_id', value)}
+                  options={genericNames?.map((gn: any) => ({
+                    value: gn.id.toString(),
+                    label: gn.name,
+                  }))}
+                  placeholder={t('Select generic name')}
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Drug Form')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <SearchableSelect
-                    value={formData.drug_form_id}
-                    onValueChange={(value) => handleInputChange('drug_form_id', value)}
-                    options={drugForms?.map((df: any) => ({
-                      value: df.id.toString(),
-                      label: df.name,
-                    }))}
-                    placeholder={t('Select drug form')}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Drug Form')}</label>
+                <SearchableSelect
+                  value={formData.drug_form_id}
+                  onValueChange={(value) => handleInputChange('drug_form_id', value)}
+                  options={drugForms?.map((df: any) => ({
+                    value: df.id.toString(),
+                    label: df.name,
+                  }))}
+                  placeholder={t('Select drug form')}
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Drug Strength')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    value={formData.drug_strength}
-                    onChange={(e) => handleInputChange('drug_strength', e.target.value)}
-                    placeholder={t('e.g. 500mg')}
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Drug Strength')}</label>
+                <Input
+                  value={formData.drug_strength}
+                  onChange={(e) => handleInputChange('drug_strength', e.target.value)}
+                  placeholder={t('e.g. 500mg')}
+                  className="w-full"
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Unit')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <SearchableSelect
-                    value={formData.unit_id}
-                    onValueChange={(value) => handleInputChange('unit_id', value)}
-                    options={units?.map((u: any) => ({
-                      value: u.id.toString(),
-                      label: u.name,
-                    }))}
-                    placeholder={t('Select unit')}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit')}</label>
+                <SearchableSelect
+                  value={formData.unit_id}
+                  onValueChange={(value) => handleInputChange('unit_id', value)}
+                  options={units?.map((u: any) => ({
+                    value: u.id.toString(),
+                    label: u.name,
+                  }))}
+                  placeholder={t('Select unit')}
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Status')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">{t('Active')}</SelectItem>
-                      <SelectItem value="inactive">{t('Inactive')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Status')}</label>
+                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">{t('Active')}</SelectItem>
+                    <SelectItem value="inactive">{t('Inactive')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
@@ -230,33 +219,29 @@ export default function ProductCreate() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="name" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Product Name')} <span className="text-red-500">*</span></label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t('Product Name')} <span className="text-red-500">*</span></label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  required
+                  className="w-full"
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="sku" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Item Code')} <span className="text-red-500">*</span></label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => handleInputChange('sku', e.target.value)}
-                    required
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">{t('Item Code')} <span className="text-red-500">*</span></label>
+                <Input
+                  id="sku"
+                  value={formData.sku}
+                  onChange={(e) => handleInputChange('sku', e.target.value)}
+                  required
+                  className="w-full"
+                />
               </div>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="barcode" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Barcode')}</label>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center flex-1 min-w-0 sm:max-w-[24rem]">
+              <div>
+                <label htmlFor="barcode" className="block text-sm font-medium text-gray-700 mb-1">{t('Barcode')}</label>
+                <div className="flex gap-2">
                   <Input
                     id="barcode"
                     value={formData.barcode}
@@ -268,7 +253,6 @@ export default function ProductCreate() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="sm:ml-2"
                     onClick={() => {
                       const code = Math.floor(100000000000 + Math.random() * 900000000000).toString();
                       handleInputChange('barcode', code);
@@ -299,11 +283,11 @@ export default function ProductCreate() {
               {t('Pricing Options')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="cost_price" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Cost Price')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem] relative">
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="cost_price" className="block text-sm font-medium text-gray-700 mb-1">{t('Cost Price')}</label>
+                <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
                   <Input
                     id="cost_price"
@@ -319,9 +303,9 @@ export default function ProductCreate() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="sale_price" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Sale Price')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem] relative">
+              <div>
+                <label htmlFor="sale_price" className="block text-sm font-medium text-gray-700 mb-1">{t('Sale Price')}</label>
+                <div className="relative">
                   <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
                   <Input
                     id="sale_price"
@@ -337,24 +321,22 @@ export default function ProductCreate() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="reorder_level" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Reorder Level')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    id="reorder_level"
-                    type="number"
-                    min="0"
-                    value={formData.reorder_level}
-                    onChange={(e) => handleInputChange('reorder_level', e.target.value)}
-                    placeholder="0"
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label htmlFor="reorder_level" className="block text-sm font-medium text-gray-700 mb-1">{t('Reorder Level')}</label>
+                <Input
+                  id="reorder_level"
+                  type="number"
+                  min="0"
+                  value={formData.reorder_level}
+                  onChange={(e) => handleInputChange('reorder_level', e.target.value)}
+                  placeholder="0"
+                  className="w-full"
+                />
               </div>
 
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Has Expiry Date')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem] flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('Has Expiry Date')}</label>
+                <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="has_expiry"
@@ -367,38 +349,34 @@ export default function ProductCreate() {
               </div>
 
               {formData.has_expiry && (
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="expire_date" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Expiry Period (Days)')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    id="expire_date"
-                    type="number"
-                    min="0"
-                    value={formData.expire_date}
-                    onChange={(e) => handleInputChange('expire_date', e.target.value)}
-                    placeholder="30"
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label htmlFor="expire_date" className="block text-sm font-medium text-gray-700 mb-1">{t('Expiry Period (Days)')}</label>
+                <Input
+                  id="expire_date"
+                  type="number"
+                  min="0"
+                  value={formData.expire_date}
+                  onChange={(e) => handleInputChange('expire_date', e.target.value)}
+                  placeholder="30"
+                  className="w-full"
+                />
               </div>
               )}
 
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="pack_size" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Pack Size')}</label>
-                <div className="flex-1 min-w-0 sm:max-w-[24rem]">
-                  <Input
-                    id="pack_size"
-                    value={formData.pack_size}
-                    onChange={(e) => handleInputChange('pack_size', e.target.value)}
-                    placeholder={t('e.g., 10 tablets, 100ml')}
-                    className="w-full"
-                  />
-                </div>
+              <div>
+                <label htmlFor="pack_size" className="block text-sm font-medium text-gray-700 mb-1">{t('Pack Size')}</label>
+                <Input
+                  id="pack_size"
+                  value={formData.pack_size}
+                  onChange={(e) => handleInputChange('pack_size', e.target.value)}
+                  placeholder={t('e.g., 10 tablets, 100ml')}
+                  className="w-full"
+                />
               </div>
 
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                <label htmlFor="profit_margin" className="w-full text-sm font-medium text-gray-700 sm:w-32">{t('Profit Margin (%)')}</label>
-                <div className="relative flex-1 min-w-0 sm:max-w-[24rem]">
+              <div>
+                <label htmlFor="profit_margin" className="block text-sm font-medium text-gray-700 mb-1">{t('Profit Margin (%)')}</label>
+                <div className="relative">
                   <Input
                     id="profit_margin"
                     type="number"

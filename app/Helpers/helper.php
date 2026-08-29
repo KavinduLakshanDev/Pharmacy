@@ -959,8 +959,8 @@ if (! function_exists('defaultSettings')) {
             'enable_privileged_points' => false,
 
             // Brand Settings
-            'logoDark' => '/images/logos/logo-dark.png',
-            'logoLight' => '/images/logos/logo-light.png',
+            'logoDark' => '/images/logos/logo-dark.jpeg',
+            'logoLight' => '/images/logos/logo-light.jpeg',
             'favicon' => '/images/logos/favicon.ico',
             'titleText' => 'Sales',
             'footerText' => 'Unitec Softwear Solutions © 2026. All rights reserved.',
@@ -973,7 +973,7 @@ if (! function_exists('defaultSettings')) {
 
             // Storage Settings
             'storage_type' => 'local',
-            'storage_file_types' => 'jpg,png,webp,gif,pdf,doc,docx,txt,csv',
+            'storage_file_types' => 'jpg,jpeg,png,webp,gif,pdf,doc,docx,txt,csv',
             'storage_max_upload_size' => '2048',
             'aws_access_key_id' => '',
             'aws_secret_access_key' => '',
@@ -1140,11 +1140,11 @@ if (! function_exists('getCompanyName')) {
 if (! function_exists('getCompanyLogo')) {
     function getCompanyLogo()
     {
-        $company = getSetting('logoDark', '/images/logos/logo-dark.png', createdBy());
+        $company = getSetting('logoDark', '/images/logos/logo-dark.jpeg', createdBy());
         if ($company) {
             return $company;
         } else {
-            return '/images/logos/logo-dark.png';
+            return '/images/logos/logo-dark.jpeg';
         }
     }
 }

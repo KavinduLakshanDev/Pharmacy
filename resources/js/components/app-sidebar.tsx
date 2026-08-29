@@ -921,7 +921,7 @@ export function AppSidebar() {
                                         src={displayUrl}
                                         alt="Logo"
                                         className="h-10 w-auto max-w-[180px] transition-all duration-200"
-                                        onError={() => updateBrandSettings({ [isDark ? 'logoLight' : 'logoDark']: isDark ? '/images/logos/logo-light.png' : '/images/logos/logo-dark.png' })}
+                                        onError={() => updateBrandSettings({ [isDark ? 'logoLight' : 'logoDark']: isDark ? '/images/logos/logo-light.jpeg' : '/images/logos/logo-dark.jpeg' })}
                                     />
                                 ) : (
                                     <div className="flex h-12 items-center text-lg font-semibold tracking-tight text-inherit">WorkDo</div>

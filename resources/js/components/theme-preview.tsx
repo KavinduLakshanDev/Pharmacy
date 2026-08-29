@@ -26,9 +26,9 @@ export function ThemePreview() {
     if (logoError) return '';
     
     if (appearance === 'dark') {
-      return logoLight || '/images/logos/logo-light.png';
+      return logoLight || '/images/logos/logo-light.jpeg';
     } else {
-      return logoDark || '/images/logos/logo-dark.png';
+      return logoDark || '/images/logos/logo-dark.jpeg';
     }
   };
   
