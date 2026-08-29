@@ -63,7 +63,7 @@ function PlansSection({ plans, settings, sectionData, brandColor = '#3b82f6' }: 
       features: [
         'CRM & Lead Management',
         'Basic Pipeline Tracking',
-        'Contact Management',
+        // 'Contact Management',
         'Basic Reports',
         'Email Support'
       ],
@@ -138,7 +138,7 @@ function PlansSection({ plans, settings, sectionData, brandColor = '#3b82f6' }: 
     if (typeof window !== 'undefined' && window.appSettings?.formatCurrency) {
       // Use numeric value if available, otherwise parse the string
       const numericAmount = typeof amount === 'number' ? amount : parseFloat(amount);
-      return window.appSettings.formatCurrency(numericAmount, { showSymbol: true });
+      return window.appSettings.formatCurrency(numericAmount);
     }
     // Fallback if appSettings is not available
     return amount;
