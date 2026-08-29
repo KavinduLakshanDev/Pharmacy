@@ -473,6 +473,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('drug-destroys', [DrugDestroyController::class, 'store'])->middleware('permission:create-drug-destroys|view-inventory-transactions')->name('drug-destroys.store');
 
             Route::get('supplier-payments', [\App\Http\Controllers\SupplierPaymentController::class, 'index'])->middleware('permission:view-inventory-transactions')->name('supplier-payments.index');
+            Route::get('supplier-payments/create', [\App\Http\Controllers\SupplierPaymentController::class, 'create'])->middleware('permission:view-inventory-transactions')->name('supplier-payments.create');
             Route::post('supplier-payments', [\App\Http\Controllers\SupplierPaymentController::class, 'store'])->middleware('permission:view-inventory-transactions')->name('supplier-payments.store');
             Route::get('supplier-payments/search-suppliers', [\App\Http\Controllers\SupplierPaymentController::class, 'searchSuppliers'])->middleware('permission:view-inventory-transactions')->name('supplier-payments.search-suppliers');
             Route::get('supplier-payments/supplier-details', [\App\Http\Controllers\SupplierPaymentController::class, 'supplierDetails'])->middleware('permission:view-inventory-transactions')->name('supplier-payments.supplier-details');
