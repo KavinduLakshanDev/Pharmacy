@@ -1,0 +1,108 @@
+@media print {
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 11pt;
+    line-height: 1.3;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  .print-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .print-hide {
+    display: none !important;
+  }
+  
+  .print-header {
+    background: #1e40af !important;
+    color: white !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+    border-radius: 8px !important;
+  }
+  
+  .print-card {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
+    break-inside: avoid;
+  }
+  
+  .print-card-header {
+    background: #f9fafb !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+  
+  .print-card-content {
+    padding: 16px !important;
+  }
+  
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 0 !important;
+  }
+  
+  .print-table th,
+  .print-table td {
+    border: 1px solid #d1d5db !important;
+    padding: 8px 6px !important;
+    text-align: left;
+    font-size: 10pt;
+  }
+  
+  .print-table th {
+    background: #f3f4f6 !important;
+    font-weight: bold;
+  }
+  
+  .print-table .text-right {
+    text-align: right !important;
+  }
+  
+  .print-summary-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .print-summary-card {
+    border: 1px solid #e5e7eb !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    text-align: center;
+  }
+  
+  .print-billing-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+  }
+  
+  .print-total-row {
+    background: #f0fdf4 !important;
+    font-weight: bold !important;
+    font-size: 12pt !important;
+  }
+}
