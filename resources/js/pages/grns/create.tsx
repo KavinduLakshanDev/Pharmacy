@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Search } from 'lucide-react';
+import { Plus, X, Search, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/components/custom-toast';
 
 type GrnItem = {
@@ -469,11 +469,11 @@ export default function GrnCreate() {
                           <div className="flex items-center gap-2">
                             <Button type="button" variant="outline" size="icon" onClick={() => handleEditItem(index)}>
                               <span className="sr-only">{t('Edit')}</span>
-                              <span className="text-sm">✎</span>
+                              <Edit className="h-4 w-4" />
                             </Button>
                             <Button type="button" variant="outline" size="icon" onClick={() => handleRemoveItem(index)}>
                               <span className="sr-only">{t('Remove')}</span>
-                              <X className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>

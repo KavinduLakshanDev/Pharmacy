@@ -142,10 +142,6 @@ class GrnController extends Controller
 
     public function edit(Grn $grn)
     {
-        if ($grn->status === GrnStatus::Approved) {
-            return redirect()->route('grns.index')->with('error', __('Approved GRNs cannot be edited.'));
-        }
-
         $grn->load(['supplier', 'items.product.unit', 'branch']);
 
         return Inertia::render('grns/edit', [
@@ -179,11 +175,6 @@ class GrnController extends Controller
         }
 
         $grn->update($data);
-
-        // Prevent updates once approved
-        if ($grn->status === GrnStatus::Approved) {
-            return redirect()->route('grns.index')->with('error', __('Approved GRNs cannot be updated.'));
-        }
 
         // Clear and re-create items to match payload
         $grn->items()->delete();

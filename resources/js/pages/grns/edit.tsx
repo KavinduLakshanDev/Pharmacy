@@ -10,7 +10,7 @@ import SearchableSelect from '@/components/ui/searchable-select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Search } from 'lucide-react';
+import { Plus, X, Search, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/components/custom-toast';
 
 type GrnItem = {
@@ -167,7 +167,7 @@ export default function GrnEdit() {
     setCurrentItem(prev => ({
       ...prev!,
       product_id: product.id,
-      unit_price: Number(product.price || 0),
+      unit_price: product.cost_price != null ? Number(product.cost_price) : Number(product.price || 0),
       sale_price: product.sale_price != null ? Number(product.sale_price) : null,
       quantity: 1,
       pack_size: product.pack_size || '',
@@ -286,7 +286,7 @@ export default function GrnEdit() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('GRN Number')}</label>
                 <Input
                   value={formData.grn_no}
-                  onChange={(e) => handleFormChange('grn_no', e.target.value)}
+                  readOnly
                   required
                 />
               </div>
@@ -295,7 +295,7 @@ export default function GrnEdit() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('Batch No')}</label>
                 <Input
                   value={formData.batch_no}
-                  onChange={(e) => handleFormChange('batch_no', e.target.value)}
+                  readOnly
                 />
               </div>
 
@@ -449,11 +449,11 @@ export default function GrnEdit() {
                           <div className="flex items-center gap-2">
                             <Button type="button" variant="outline" size="icon" onClick={() => handleEditItem(index)}>
                               <span className="sr-only">{t('Edit')}</span>
-                              <span className="text-sm">✎</span>
+                              <Edit className="h-4 w-4" />
                             </Button>
                             <Button type="button" variant="outline" size="icon" onClick={() => handleRemoveItem(index)}>
                               <span className="sr-only">{t('Remove')}</span>
-                              <X className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -481,7 +481,7 @@ export default function GrnEdit() {
       </form>
 
       <Dialog open={isItemModalOpen} onOpenChange={setIsItemModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-4xl w-full">
           <DialogHeader>
             <DialogTitle>{itemModalStep === 'select' ? t('Select Product') : t('Item Details')}</DialogTitle>
             <DialogDescription>
@@ -541,11 +541,16 @@ export default function GrnEdit() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('Product')}</label>
                   <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm">{selectedProduct?.name ?? '-'}</div>
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Product Code')}</label>
+                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm">{selectedProduct?.sku ?? selectedProduct?.id ?? '-'}</div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('Quantity')}</label>
                   <Input
@@ -553,16 +558,6 @@ export default function GrnEdit() {
                     min={1}
                     value={currentItem?.quantity}
                     onChange={(e) => setCurrentItem(prev => prev ? { ...prev, quantity: Number(e.target.value) } : prev)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Cost Price (per box)')}</label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={currentItem?.unit_price ?? 0}
-                    onChange={(e) => setCurrentItem(prev => prev ? { ...prev, unit_price: Number(e.target.value) } : prev)}
                   />
                 </div>
                 <div>
@@ -574,6 +569,62 @@ export default function GrnEdit() {
                     value={currentItem?.free_qty ?? 0}
                     onChange={(e) => setCurrentItem(prev => prev ? { ...prev, free_qty: Number(e.target.value) } : prev)}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Pack Size')}</label>
+                  <Input
+                    type="text"
+                    value={currentItem?.pack_size || ''}
+                    onChange={(e) => setCurrentItem(prev => prev ? { ...prev, pack_size: e.target.value } : prev)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit Stock (tablet)')}</label>
+                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
+                    {(() => {
+                      const qty = Number(currentItem?.quantity || 0);
+                      const freeQty = Number(currentItem?.free_qty || 0);
+                      const ps = Number(currentItem?.pack_size) || 1;
+                      return ((qty + freeQty) * ps).toFixed(0);
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Cost Price')}</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={currentItem?.unit_price ?? 0}
+                    onChange={(e) => setCurrentItem(prev => prev ? { ...prev, unit_price: Number(e.target.value) } : prev)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('New Cost Price')}</label>
+                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
+                    {(() => {
+                      const qty = Number(currentItem?.quantity || 1);
+                      const freeQty = Number(currentItem?.free_qty || 0);
+                      const totalQty = qty + freeQty || 1;
+                      const newCostPrice = lineTotal / totalQty;
+                      return window.appSettings?.formatCurrency?.(newCostPrice) ?? newCostPrice.toFixed(2);
+                    })()}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit Cost Price')}</label>
+                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
+                    {(() => {
+                      const qty = Number(currentItem?.quantity || 1);
+                      const freeQty = Number(currentItem?.free_qty || 0);
+                      const ps = Number(currentItem?.pack_size) || 1;
+                      const ucp = lineTotal / ((qty + freeQty) * ps);
+                      return window.appSettings?.formatCurrency?.(ucp) ?? ucp.toFixed(2);
+                    })()}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('Sale Price')}</label>
@@ -591,18 +642,6 @@ export default function GrnEdit() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit Cost Price (after discount)')}</label>
-                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
-                    {(() => {
-                      const qty = Number(currentItem?.quantity || 1);
-                      const freeQty = Number(currentItem?.free_qty || 0);
-                      const ps = Number(currentItem?.pack_size) || 1;
-                      const ucp = lineTotal / ((qty + freeQty) * ps);
-                      return window.appSettings?.formatCurrency?.(ucp) ?? ucp.toFixed(2);
-                    })()}
-                  </div>
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit Sales Price')}</label>
                   <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
                     {(() => {
@@ -614,28 +653,9 @@ export default function GrnEdit() {
                     })()}
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Unit Stock (tablet)')}</label>
-                  <div className="rounded-md border bg-gray-50 px-3 py-2 text-sm font-medium">
-                    {(() => {
-                      const qty = Number(currentItem?.quantity || 0);
-                      const freeQty = Number(currentItem?.free_qty || 0);
-                      const ps = Number(currentItem?.pack_size) || 1;
-                      return ((qty + freeQty) * ps).toFixed(0);
-                    })()}
-                  </div>
-                </div>
-                {selectedProduct?.has_expiry !== false && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('Expiry Date')} <span className="text-red-500">*</span></label>
-                    <Input
-                      type="date"
-                      required
-                      value={currentItem?.expiry_date || ''}
-                      onChange={(e) => setCurrentItem(prev => prev ? { ...prev, expiry_date: e.target.value } : prev)}
-                    />
-                  </div>
-                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('Discount Type')}</label>
                   <Select
@@ -662,14 +682,17 @@ export default function GrnEdit() {
                     onChange={(e) => setCurrentItem(prev => prev ? { ...prev, discount_value: Number(e.target.value) } : prev)}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('Pack Size')}</label>
-                  <Input
-                    type="text"
-                    value={currentItem?.pack_size || ''}
-                    onChange={(e) => setCurrentItem(prev => prev ? { ...prev, pack_size: e.target.value } : prev)}
-                  />
-                </div>
+                {selectedProduct?.has_expiry !== false && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('Expiry Date')} <span className="text-red-500">*</span></label>
+                    <Input
+                      type="date"
+                      required
+                      value={currentItem?.expiry_date || ''}
+                      onChange={(e) => setCurrentItem(prev => prev ? { ...prev, expiry_date: e.target.value } : prev)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="rounded-lg border bg-gray-50 p-4">
